@@ -150,8 +150,8 @@ function TouchHandler:update(event)
 		if(d>MAX_HOLD_RADIUS) then
 			self.checkHold = false
 		end
-		if(self.checkHold and self.touchDownTime >= MAX_TAP_TIME) then							
-			if(d <= MAX_HOLD_RADIUS) then
+		if(self.checkHold and self.touchDownTime >= MAX_TAP_TIME) then										
+			if(d <= MAX_HOLD_RADIUS) then				
 				self:hold()		
 				self.checkHold = false
 			end
@@ -160,7 +160,6 @@ function TouchHandler:update(event)
 end
 
 function TouchHandler:updateLastTouch(params) 	
-
 	if(params.id > MAX_TOUCH_ID) then
 		return
 	end
@@ -337,6 +336,7 @@ function TouchHandler:hold()
 	local hobj = self.bufferq[self.bufferq.size + 1]
 	hobj.type = TouchHandler.HOLD
 	hobj.x, hobj.y = self.firstTouchOnScreen.x, self.firstTouchOnScreen.y
+	self.bufferq.size = self.bufferq.size + 1 --add tap ke bufferq
 end
 
 function TouchHandler:_distance(point1, x, y)
