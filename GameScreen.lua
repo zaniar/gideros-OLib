@@ -37,8 +37,6 @@ ScreenState.TRANSITION_OFF = 3
 ScreenState.HIDDEN = 4
 
 function GameScreen:init()
-	
-	--properties
 	self._isPopup = false
 	self._transitionOnTime = 0
 	self._transitionOffTime = 0
@@ -47,6 +45,9 @@ function GameScreen:init()
 	self._isExiting = false
 	self._otherScreenHasFocus = false
 	self._screenManager = nil
+
+	self.removedHandler = EventHandler.new(self) -- will be raised if this screen is removed from the screen manager
+	self.addedHandler = EventHandler.new(self) -- will be raised if this screen is added to the screen manager
 end
 
 function GameScreen:getScreenState()
@@ -148,6 +149,11 @@ end
 function GameScreen:handleInput(input)
 end
 
+--virtual
+--otomatis dipanggil oleh screen manager ketika screen ini ditambahkan ke screen manager
+function GameScreen:onAddScreen()
+end
+
 --[[
 /// Tells the screen to go away. Unlike ScreenManager.RemoveScreen, which
 /// instantly kills the screen, this method respects the transition timings
@@ -155,6 +161,7 @@ end
 --]]
 function GameScreen:exitScreen()
 	if(self._transitionOffTime == 0) then		
+		self.removedHandler:raiseEvent(nil)
 		self:getScreenManager():removeScreen(self)
 	else
 		self._isExiting = true

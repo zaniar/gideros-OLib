@@ -30,24 +30,12 @@ function ScreenManager:init()
 	self._screens = {}
 	self._screensToUpdate = {}	
 	self._touchHandler = TouchHandler.new(self)
-	self._isTopOtherScreen = true
-	self.currentTextureMemory = 0
-	self.preTextureMemory = 0
+	self._isTopOtherScreen = true	
 	
 	self:addEventListener(Event.ENTER_FRAME, self._onEnterFrame, self)
 end
 
-function ScreenManager:showTextureMemoryUsage()
-	self.currentTextureMemory = application:getTextureMemoryUsage()
-	if self.currentTextureMemory ~= self.preTextureMemory then
-		print("TextureMemory : "..(self.currentTextureMemory/1000).." MB")
-	end
-	self.preTextureMemory = self.currentTextureMemory
-end
-
-function ScreenManager._onEnterFrame(self, event)
-	--self:showTextureMemoryUsage()
-
+function ScreenManager._onEnterFrame(self, event)	
 	local gameTime = event.deltaTime
 	
 	--update touch
@@ -99,6 +87,8 @@ function ScreenManager:addScreen(screen)
 	
 	self._screens[#self._screens+1] = screen
 	self:addChild(screen)	
+	screen.addedHandler:raiseEvent(nil)
+	screen:onAddScreen()
 end
 
 --[[
@@ -108,7 +98,6 @@ end
 	instantly removed.
 --]]
 function ScreenManager:removeScreen(screen)	
-
 	for i=1, #self._screens do
 		if(self._screens[i] == screen) then
 			table.remove(self._screens, i)
@@ -123,6 +112,12 @@ function ScreenManager:removeScreen(screen)
 		end
 	end
 	if(screen:getParent() == self) then
-		self:removeChild(screen)
+		self:removeChild(screen)		
+		screen:removeFromParent()								
+		Timer.delayedCall(100,
+			function()
+				collectgarbage()
+			end		
+		)		
 	end
 end
