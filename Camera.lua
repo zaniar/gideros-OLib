@@ -21,9 +21,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 
 Camera = Core.class(Sprite)
 
-function Camera:init(worldWidth, worldHeight) 
-	
-	--properties	
+function Camera:init(worldWidth, worldHeight) 	
 	self.worldWidth = worldWidth
 	self.worldHeight = worldHeight
 	self.velocity = {x = 0, y = 0}			
@@ -39,7 +37,7 @@ function Camera:init(worldWidth, worldHeight)
 	self._lengthTransX = 0
 	self._lengthTransY = 0
 	
-	--untuk tween translate
+	--for translate tween
 	self._elapsedTimeTranslation = 0
 	self._timeTranslation = 0
 	self._isActiveTranslation = false
@@ -52,7 +50,6 @@ function Camera:init(worldWidth, worldHeight)
 	else
 		self.minZoom = minZoomedHeight
 	end
-
 end
 
 function Camera:setMaxZoom(value) 
@@ -90,7 +87,7 @@ function Camera:getCameraPosition()
 end
 
 function Camera:setCameraPosition(camX, camY)
-	self._currentPosition.x, self._currentPosition.y = self:adjustPosition(camX, camY, self:getScale())	
+	self._currentPosition.x, self._currentPosition.y = self:_adjustPosition(camX, camY, self:getScale())	
 	local spriteX, spriteY = self:cameraPosToSpritePos(self._currentPosition.x, self._currentPosition.y)	
 	self:setPosition(spriteX, spriteY)			
 end
@@ -100,7 +97,6 @@ function Camera:getZoom()
 end
 
 function Camera:zoom(newScale)	
-	
 	if(newScale > self.maxZoom) then
 		newScale = self.maxZoom
 	elseif(newScale < self.minZoom) then
@@ -127,7 +123,7 @@ function Camera:zoom(newScale)
 		self.maxPosition.x = self.worldWidth / 2
 	end
 	
-	self._currentPosition.x, self._currentPosition.y = self:adjustPosition(self._currentPosition.x, self._currentPosition.y)
+	self._currentPosition.x, self._currentPosition.y = self:_adjustPosition(self._currentPosition.x, self._currentPosition.y)
 	
 	self:setPosition(self:cameraPosToSpritePos(self._currentPosition.x, self._currentPosition.y))			
 	
@@ -139,10 +135,9 @@ function Camera:zoom(newScale)
 end
 
 function Camera:moveCamera(deltaX, deltaY)	
-	
 	local newPosX = self._currentPosition.x + deltaX
 	local newPosY = self._currentPosition.y + deltaY		
-	self._currentPosition.x, self._currentPosition.y = self:adjustPosition(newPosX, newPosY, self:getScale())
+	self._currentPosition.x, self._currentPosition.y = self:_adjustPosition(newPosX, newPosY, self:getScale())
 		
 	self:setPosition(self:cameraPosToSpritePos(self._currentPosition.x, self._currentPosition.y))		
 	--print("move ", self:getPosition())
@@ -154,7 +149,6 @@ function Camera:cancelTween()
 end
 
 function Camera:tweenCameraTo(newX, newY, newScale, duration, tweenCompleteFunc)
-	
 	if(newScale == nil) then
 		newScale = self:getScale()
 	end
@@ -193,24 +187,7 @@ function Camera:tweenCameraTo(newX, newY, newScale, duration, tweenCompleteFunc)
 	self._isActiveTranslation = true
 end
 
-function Camera:adjustPosition(x, y, scale)	
-	if(x > self.maxPosition.x) then
-		x = self.maxPosition.x
-	end
-	if(y > self.maxPosition.y) then
-		y = self.maxPosition.y
-	end	
-	if(x < self.minPosition.x) then
-		x = self.minPosition.x
-	end
-	if(y < self.minPosition.y) then
-		y = self.minPosition.y
-	end		
-	return x, y
-end
-
-function Camera:setVelocity(velocityX, velocityY)
-	
+function Camera:setVelocity(velocityX, velocityY)	
 	self.velocity.x, self.velocity.y = velocityX, velocityY
 end
 
@@ -219,7 +196,6 @@ function Camera:convertScreenToWorld(x, y)
 end
 
 function Camera:update(deltaTime)	
-	
 	--update zooming
 	local deltaZoom = self._targetZoom - self._currentZoom
 	local zoomDistance = math.abs(deltaZoom)
@@ -233,28 +209,27 @@ function Camera:update(deltaTime)
 	self._currentZoom = self._currentZoom + (10 * deltaZoom * zoomInertia * deltaTime)
 	
 	if(math.abs(self._targetZoom - self._currentZoom) > 0.07) then		
-		
 		self.minPosition.x = application:getContentWidth() / 2 / self._currentZoom
 		self.minPosition.y = application:getContentHeight() / 2 / self._currentZoom
 		self.maxPosition.x = self.worldWidth - (application:getContentWidth() / 2 / self._currentZoom)
 		self.maxPosition.y = self.worldHeight - (application:getContentHeight() / 2 / self._currentZoom)
 		
-		self._currentPosition.x, self._currentPosition.y = self:adjustPosition(self._currentPosition.x, self._currentPosition.y)
+		self._currentPosition.x, self._currentPosition.y = self:_adjustPosition(self._currentPosition.x, self._currentPosition.y)
 	end
 	
-	--update posisi			
+	--update position
 	if(self._isActiveTranslation) then		
 		self:_tweenTranslate(deltaTime)
 	end
 	
-	--update kecepatan
+	--update speed
 	if(self.velocity.x ~= 0 or self.velocity.y ~= 0) then
 		--[[
 		self._currentPosition.x = self._currentPosition.x + self.velocity.x * deltaTime * 16
 		self._currentPosition.y = self._currentPosition.y + self.velocity.y * deltaTime * 16
-		print("kec 1", self._currentPosition.x, self._currentPosition.y, self.velocity.x, self.velocity.y)
-		self._currentPosition.x, self._currentPosition.y = self:adjustPosition(self._currentPosition.x, self._currentPosition.y)		
-		print("kec 2", self._currentPosition.x, self._currentPosition.y, self.velocity.x, self.velocity.y)
+		print("speed 1", self._currentPosition.x, self._currentPosition.y, self.velocity.x, self.velocity.y)
+		self._currentPosition.x, self._currentPosition.y = self:_adjustPosition(self._currentPosition.x, self._currentPosition.y)		
+		print("speed 2", self._currentPosition.x, self._currentPosition.y, self.velocity.x, self.velocity.y)
 		--]]
 		
 		self:moveCamera(self.velocity.x * deltaTime * 16, self.velocity.y * deltaTime * 16)
@@ -293,4 +268,20 @@ end
 function Camera:_easingFunc(elapsedTime, start, change, duration)
 	elapsedTime = elapsedTime / duration;
     return -change * elapsedTime * (elapsedTime - 2) + start;
+end
+
+function Camera:_adjustPosition(x, y, scale)	
+	if(x > self.maxPosition.x) then
+		x = self.maxPosition.x
+	end
+	if(y > self.maxPosition.y) then
+		y = self.maxPosition.y
+	end	
+	if(x < self.minPosition.x) then
+		x = self.minPosition.x
+	end
+	if(y < self.minPosition.y) then
+		y = self.minPosition.y
+	end		
+	return x, y
 end
