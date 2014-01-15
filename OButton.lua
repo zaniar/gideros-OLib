@@ -26,7 +26,7 @@ OButton = Core.class(Bitmap)
 function OButton:init(texture, x, y)
 	self.FEEDBACK_ZOOM = nil
 	self.FEEDBACK_ALPHA = nil
-	self._normalfzoom = 1 -- zoom ketika release button, hanya dipake jika feedback	
+	self._normalfzoom = 1 -- zoom when user release the button, only used when self._isFeedBackZoom = true	
 	self._normalfalpha = 1
 	
 	--properties
@@ -41,7 +41,7 @@ function OButton:init(texture, x, y)
 	self._aabb = nil	
 end
 
---relatif terhadap kordinat lokal si button (kordinat lokal bisa berubah gara2 setanchorpoint)
+--relative to the local coordinate of the button(local coordinate could change because of setAnchorPoint function)
 function OButton:setHitArea(xl, yl, xu, yu)
 	self._aabb = AABB.new(xl, yl, xu, yu)
 end
@@ -52,9 +52,10 @@ function OButton:setFeedBackZoom(endZoom, normalZoom)
 	
 	if(normalZoom ~= nil) then
 		self._normalfzoom = normalZoom
+		self:setScale(normalZoom)
 	end
 	
-	self._isFeedBackZoom = true
+	self._isFeedBackZoom = true	
 end
 
 function OButton:setFeedBackAlpha(endAlpha, normalAlpha)
@@ -122,7 +123,6 @@ end
 
 function OButton:effectMoved(x, y)
 	if(self:isVisible() and self:getAlpha() > 0 and self:getParent() ~= nil) then
-		
 		if(not self:_isInRegion(x, y) and self._isOnHold) then
 			self._isOnHold = false
 			if(self._isFeedBackZoom) then
@@ -151,7 +151,7 @@ function OButton:effectReleased(x, y)
 	self._isOnHold = false
 end
 
--- x dan y adalah kordinat global
+-- x and y are global coordinates
 function OButton:_isInRegion(x, y)	
 	if(self._aabb ~= nil) then
 		local localx, localy = self:globalToLocal(x, y)

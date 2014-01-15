@@ -24,9 +24,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 
 ScreenManager = Core.class(Sprite)
 
-function ScreenManager:init()
-	
-	--properties
+function ScreenManager:init()		
 	self._screens = {}
 	self._screensToUpdate = {}	
 	self._touchHandler = TouchHandler.new(self)
@@ -52,8 +50,8 @@ function ScreenManager._onEnterFrame(self, event)
 	end
 	
 	local otherScreenHasFocus = false
-	local coveredByOtherScreen = false
-	
+	local coveredByOtherScreen = false	
+
 	--Loop as long as there are screens waiting to be updated.
 	while(#self._screensToUpdate > 0) do
 		--Pop the topmost screen off the waiting list.
@@ -63,12 +61,12 @@ function ScreenManager._onEnterFrame(self, event)
 		screen:update(gameTime, otherScreenHasFocus, coveredByOtherScreen)
 		
 		if(screen.ScreenState == ScreenState.TransitionOn or screen.ScreenState == ScreenState.Active) then
-		
 			--If this is the first active screen we came across,
-			--give it a chance to handle input.
-			if (not otherScreenHasFocus) then											
-				screen:handleInput(self._touchHandler)
-
+			--give it a chance to handle input, if there is any.
+			if (not otherScreenHasFocus) then
+				if(self._touchHandler:getTouchStates().size ~= 0 or self._touchHandler:getQueue().size ~= 0) then
+					screen:handleInput(self._touchHandler)			
+				end
 				otherScreenHasFocus = true
 			end
 
@@ -100,14 +98,14 @@ end
 function ScreenManager:removeScreen(screen)	
 	for i=1, #self._screens do
 		if(self._screens[i] == screen) then
-			table.remove(self._screens, i)
+			table.remove(self._screens, i)			
 			break			
 		end
 	end	
 	
 	for i=1, #self._screensToUpdate do
 		if(self._screensToUpdate[i] == screen) then
-			table.remove(self._screensToUpdate, i)
+			table.remove(self._screensToUpdate, i)			
 			break
 		end
 	end
@@ -120,4 +118,38 @@ function ScreenManager:removeScreen(screen)
 			end		
 		)		
 	end
+end
+
+--[[
+	check if there's screen object in the Screen Stack
+--]]
+function ScreenManager:isScreenInStack(screen)
+	for i=1, #self._screens do
+		if(self._screens[i] == screen) then
+			return true
+		end
+	end
+	return false
+end
+
+--[[
+	close every screen above a particular screen using their own exitScreen
+--]]
+function ScreenManager:closeEverythingAbove(screen)
+	local found_index = #self._screens
+	for i=1, #self._screens do
+		if(self._screens[i] == screen) then
+			found_index = i
+			break
+		end
+	end	
+
+	for i=#self._screens, found_index + 1, -1 do
+		self._screens[i]:exitScreen()
+	end 
+end
+
+--return screens count in the stack
+function ScreenManager:getScreenCount()
+	return #self._screens
 end

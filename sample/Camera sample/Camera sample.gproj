@@ -1,0 +1,14 @@
+<project>
+ <properties autorotation="0" encryptAssets="0" fps="60" scaleMode="0" mouseToTouch="1" iosDevice="0" packageName="com.yourdomain.yourapp" logicalHeight="480" logicalWidth="320" mouseTouchOrder="0" encryptCode="0" retinaDisplay="0" touchToMouse="1" assetsOnly="0" orientation="0" architecture="0">
+  <imageScales/>
+ </properties>
+ <file source="../../Camera.lua"/>
+ <file source="../../EventHandler.lua"/>
+ <file source="../../GameScreen.lua"/>
+ <file source="MainGameScreen.lua"/>
+ <file source="../../ScreenManager.lua"/>
+ <file source="../../TouchHandler.lua"/>
+ <file source="celtic.ttf"/>
+ <file source="main.lua"/>
+ <file source="space.jpg"/>
+</project>

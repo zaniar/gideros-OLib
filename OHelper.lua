@@ -19,10 +19,9 @@ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TOR
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
---berisi fungsi-fungsi yang mempermudah hidup
 OHelper = Core.class()
 
---mengembalikan semua kombinasi dari nCk
+--return every combination of nCk
 function OHelper.generate_combination(n, k)		
 	local ret = {}	
 	local iter = {}
@@ -52,8 +51,7 @@ function OHelper.generate_combination(n, k)
 	return ret
 end
 
---fungsi ini akan mengedit in-place variabel t dan mereverse elemen-elemennya, dianggap elemen ada berurutan 
---dari 1 .. #t (tidak bolong-bolong)
+--this function will reverse in-place elements in table t, assumed it is an indexed table(not sparse, from 1 to #t)
 function OHelper.reverse_table_inplace(t)
 	local size = #t
 	for i=1, math.floor(size/2) do
@@ -65,8 +63,9 @@ function OHelper.reverse_table_inplace(t)
 	return t
 end
 
---fungsinya hampir mirip dengan fugnsi unpack bawaan dari lua, hanya saja memastikan bahwa jika argumen terakhirnya nil, unpack tidak
---memberikan hasil yang salah
+--this function is similar to unpack function from Lua, but this function has an extra guard to ensure that if the last argument is nil, unpack will not
+--give a wrong result
 function OHelper.unpack(t)	
+	-- assert(t~=nil, "input cant be nil\n" .. debug.traceback())
 	return unpack(t, 1, table.maxn(t))
 end

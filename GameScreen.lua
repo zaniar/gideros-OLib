@@ -78,8 +78,7 @@ function GameScreen:setScreenManager(value)
 	self._screenManager = value
 end
 
-function GameScreen:update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen)	
-	
+function GameScreen:update(elapsedTime, otherScreenHasFocus, coveredByOtherScreen)		
 	self._otherScreenHasFocus = otherScreenHasFocus
 	
 	if(self._isExiting) then

@@ -30,10 +30,10 @@ local Y_IDX = 6
 
 local MAX_TOUCH_ID = 2
 local MAX_BUF_SIZE = 10
-local MIN_FLICK_DELTA = 1 -- 
-local MAX_HOLD_RADIUS = 20 -- dalam pixel
+local MIN_FLICK_DELTA = 1
+local MAX_HOLD_RADIUS = 20 -- in pixel
 
-local MAX_TAP_TIME = 0.5 --dalam detik, kalau melebihi ini dianggap hold
+local MAX_TAP_TIME = 0.5 --in second, if tap time exceeds this variable, it will be considered as a 'hold'
 
 TouchHandler.PINCH = 0
 TouchHandler.TAP = 1
@@ -46,22 +46,22 @@ TouchHandler.TOUCH_UP = 1
 TouchHandler.TOUCH_MOVED = 2
 
 function TouchHandler:init(sprite) 		
-	--queue object event pool(cuman sebagai pengingat doang, gak dipake dalam kode)
+	--queue object event pool(only as a reminder, dont use these)
 	self.PINCH_OBJ = {type = TouchHandler.PINCH, x = 0, y = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0, x1Old = 0, y1Old = 0, x2Old = 0, y2Old = 0}
 	self.FREE_DRAG_OBJ = {type = TouchHandler.FREE_DRAG, x = 0, y = 0, xOld = 0, yOld = 0}
 	self.FLICK_OBJ = {type = TouchHandler.FLICK, x = 0, y = 0, deltaX = 0, deltaY = 0}
 	self.TAP_OBJ = {type = TouchHandler.TAP, x = 0, y = 0}
+	self.TAP_OBJ = {type = TouchHandler.HOLD, x = 0, y = 0}
 	
-	--properties
 	self.touchesData = {
 		-- [id] [last status, last x, last y, status, x, y]
 		[1] = {TouchHandler.TOUCH_UP, 0, 0, TouchHandler.TOUCH_UP, 0, 0},
 		[2] = {TouchHandler.TOUCH_UP, 0, 0, TouchHandler.TOUCH_UP, 0, 0}
 	}
-	self.touchDownTime = 0 -- berapa lama satu jari nyentuh screen
-	self.numFingerDown = 0 -- ada berapa jari di layar	
+	self.touchDownTime = 0 -- how long the finger touch the screen
+	self.numFingerDown = 0 -- how many finger touch the screen
 	self.checkHold = true
-	self.firstTouchOnScreen = {x = 0, y = 0, id = 0} -- kordinat jari pertama yang menekan layar
+	self.firstTouchOnScreen = {x = 0, y = 0, id = 0} -- first touch coordinate
 	self._enabled = false
 	self._sprite = sprite		
 	
@@ -100,7 +100,7 @@ function TouchHandler:setTouchEnabled(value)
 	end
 end
 
---untuk inisialisasi TouchHandler setelah disable/enable dari luar
+--initialize TouchHandler after disable/enable
 function TouchHandler:reset()
 	self.touchesData = {
 		-- [id] [last status, last x, last y, status, x, y]
@@ -127,6 +127,10 @@ end
 
 function TouchHandler:getTouchStates()	
 	return self._touchStates
+end
+
+function TouchHandler:getQueue()
+	return self.queue
 end
 
 function TouchHandler:update(event)		
@@ -176,7 +180,7 @@ function TouchHandler:onTouchesBegin(event)
 		return
 	end
 	
-	--masukin touch id tersebut ke buffer 	
+	--enter touch id to buffer 	
 	self:_addToTouchStatesBuffer(touch.id, touch.x, touch.y, TouchHandler.TOUCH_DOWN)
 	
 	--print("begin", touch.id, touch.x, touch.y)
@@ -186,8 +190,8 @@ function TouchHandler:onTouchesBegin(event)
 		self.firstTouchOnScreen.id = touch.id
 		self.checkHold = true
 	end
-		
-	--empat baris dibawah ini mengupdate data touch	
+			
+	--these four lines below update the data touch
 	self:updateLastTouch(touch)
 	self.touchesData[touch.id][STATUS_IDX] = TouchHandler.TOUCH_DOWN
 	self.touchesData[touch.id][X_IDX] = touch.x
@@ -196,7 +200,7 @@ function TouchHandler:onTouchesBegin(event)
 	self.numFingerDown = self.numFingerDown + 1	
 	
 	if(self.numFingerDown == 2) then		
-		self.checkHold = false -- ada dua tangan di layar berarti gak mungkin tap atau hold
+		self.checkHold = false -- there are two fingers on screen that means it is definitely not a 'tap' or a 'hold'
 	elseif(self.numFingerDown == 1) then
 		self.touchDownTime = 0
 	end
@@ -211,7 +215,7 @@ function TouchHandler:onTouchesMove(event)
 		return
 	end				
 	
-	--masukin touch id tersebut ke buffer 	
+	--enter touch id to buffer 	
 	self:_addToTouchStatesBuffer(touch.id, touch.x, touch.y, TouchHandler.TOUCH_MOVED)
 	
 	self:updateLastTouch(touch)
@@ -235,10 +239,10 @@ function TouchHandler:onTouchesEnd(event)
 		return
 	end
 	
-	--masukin touch id tersebut ke buffer 	
+	--enter touch id to buffer 	
 	self:_addToTouchStatesBuffer(touch.id, touch.x, touch.y, TouchHandler.TOUCH_UP)
-	
-	--free drag sengaja diperiksa sebelum touchnya di update
+		
+	--free drag is deliberately examined before the touches are updated
 	if(self.checkHold == false and self.numFingerDown == 1) then		
 		--print("deltax", math.abs(self.touchesData[touch.id][X_IDX] - self.touchesData[touch.id][LAST_X_IDX]))
 		--print("deltay", math.abs(self.touchesData[touch.id][Y_IDX] - self.touchesData[touch.id][LAST_Y_IDX]))
@@ -246,7 +250,7 @@ function TouchHandler:onTouchesEnd(event)
 		--print("new", self.touchesData[touch.id][X_IDX], self.touchesData[touch.id][Y_IDX])
 		if(math.abs(self.touchesData[touch.id][X_IDX] - self.touchesData[touch.id][LAST_X_IDX]) >= MIN_FLICK_DELTA or 
 			math.abs(self.touchesData[touch.id][Y_IDX] - self.touchesData[touch.id][LAST_Y_IDX]) >= MIN_FLICK_DELTA) then					
-			--terjadi flick			
+			--flick happens
 			self:flick(touch)			
 		end			
 	end
@@ -257,8 +261,8 @@ function TouchHandler:onTouchesEnd(event)
 	self.touchesData[touch.id][X_IDX] = touch.x
 	self.touchesData[touch.id][Y_IDX] = touch.y		
 	
-	if(self.checkHold and self.touchDownTime < MAX_TAP_TIME and self.numFingerDown == 1) then
-		--kalo hold aja udah gak mungkin apalagi tap
+	if(self.checkHold and self.touchDownTime < MAX_TAP_TIME and self.numFingerDown == 1) then		
+		--if 'hold', then it is not a 'tap'
 		self:tap(touch)		
 		--print("tap", self.touchDownTime)		
 	end
@@ -342,8 +346,8 @@ function TouchHandler:_addToTouchStatesBuffer(id, x, y, state)
 	end
 	
 	local obuf = nil	
-	
-	--cari apakah touch id tersebut sudah ada di bufferts sebelumnya
+		
+	--search whether that touch id is already inside previous bufferts
 	for i=1, self._bufferts.size do		
 		if(self._bufferts[i].id == id) then
 			obuf = self._bufferts[i]
@@ -351,12 +355,12 @@ function TouchHandler:_addToTouchStatesBuffer(id, x, y, state)
 		end
 	end
 		
-	if(obuf == nil) then
-		--touch tersebut belum ada di bufferts
+	if(obuf == nil) then		
+		--that touch is not inside bufferts
 		obuf = self._bufferts[self._bufferts.size + 1]
 		self._bufferts.size = self._bufferts.size + 1
-	elseif(state == TouchHandler.TOUCH_MOVED) then	
-		--jika state yang sekarang move, dan ternyata sudah ada id tersebut di buffer, hiraukan move
+	elseif(state == TouchHandler.TOUCH_MOVED) then			
+		--if current state is 'move', and the id is already inside the buffer, ignore 'move'
 		return
 	end	
 	obuf.id = id

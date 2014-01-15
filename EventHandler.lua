@@ -22,21 +22,18 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 EventHandler = Core.class()
 
 --[[
-	format parameter func adalah :
-		-sender(yang ngeraise event)
-		-event(data mengenai eventnya)
-		-params(data tambahan yang diberikan objek yang menerima event)
+	format parameter func are :
+		-sender(who raise the event)
+		-event(data about the event)		
+		-params(extra data that is sent by the object who receives the event)
 --]]
 
 function EventHandler:init(sender)
-	
-	--properties
 	self._handler = {}	
 	self._sender = sender
-	
 end
 
---func gak boleh nil, params boleh nil
+--func must not nil, params can be nil
 function EventHandler:addEventHandler(func, params)
 	local newHandler = {}
 	newHandler.f = func
@@ -51,6 +48,12 @@ function EventHandler:removeEventHandler(func)
 			table.remove(self._handler, i)			
 			break
 		end
+	end
+end
+
+function EventHandler:removeAllEventHandler()
+	for i=#self._handler, 1, -1 do
+		table.remove(self._handler, i)
 	end
 end
 
